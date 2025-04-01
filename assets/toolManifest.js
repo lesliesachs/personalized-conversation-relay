@@ -72,6 +72,48 @@ const toolManifest = {
                     ]
                 }
             }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "send-otp",
+                "description": "sends an SMS verification code to the specified phone number",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "phone": {
+                            "type": "string",
+                            "description": "the caller's phone number"
+                        }
+                    },
+                    "required": [
+                        "phone"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "verify-otp",
+                "description": "confirms the code sent to a phone number",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "phone": {
+                            "type": "string",
+                            "description": "the caller's phone number"
+                        },
+                        "passcode": {
+                            "type": "string",
+                            "description": "the passcode provided by the user"
+                        }
+                    },
+                    "required": [
+                        "passcode"
+                    ]
+                }
+            }
         }
     ]
 }

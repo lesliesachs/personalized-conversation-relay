@@ -25,8 +25,7 @@ This is a node server that uses websockets to run a conversation relay with a ca
 <Response>
    <Connect>
       <ConversationRelay 
-         url="wss://<your-ngrok-domain>/conversation-relay" 
-         voice="en-AU-Neural2-A" 
+         url="wss://<your-ngrok-domain>/conversation-relay"  
          transcriptionProvider="deepgram"
          ttsProvider="Elevenlabs"
          voice="g6xIsTj2HwM6VR4iXFCw"

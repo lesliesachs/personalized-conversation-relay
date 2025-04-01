@@ -3,6 +3,7 @@ const EventEmitter = require('events');
 const axios = require('axios');
 require('dotenv').config();
 const { getCustomer } = require('../functions/tools/get-customer');
+const { sendSmsVerification, validateVerificationCode } = require("../functions/tools/send-otp");
 
 const { OPENAI_API_KEY } = process.env;
 const { OPENAI_MODEL } = process.env;
@@ -52,6 +53,7 @@ class GptService extends EventEmitter {
             // Get the Content or toolCalls array from the response
             const assistantMessage = response.choices[0]?.message;
             const toolCalls = assistantMessage?.tool_calls;
+            console.log('toolCalls:', JSON.stringify(toolCalls));
 
             // Add the assistant's message to this.messages
             this.messages.push(assistantMessage);
@@ -231,6 +233,29 @@ class GptService extends EventEmitter {
                         }
 
 
+                    } else if (toolCall.function.name === "send-otp") {
+                        console.log(`[GptService] Send OTP Tool call: ${toolCall.function.name}`);
+                        const args = JSON.parse(toolCall.function.arguments);
+                        axios.post(COAST_WEBHOOK_URL, { log: `sending OTP to ${args.phone}...`}, { 'Content-Type': 'application/json'}).catch(err => console.log(err));
+                        console.log('sending OTP to:', args.phone);
+                        await sendSmsVerification(args.phone);
+                        this.messages.push({
+                            role: "tool",
+                            content: 'OTP sent',
+                            tool_call_id: toolCall.id,
+                        });
+                    } else if (toolCall.function.name === "verify-otp") {
+                        console.log(`[GptService] Validate OTP Tool call: ${toolCall.function.name}`);
+                        const args = JSON.parse(toolCall.function.arguments);
+                        axios.post(COAST_WEBHOOK_URL, { log: `validating OTP ${args.passcode}...`}, { 'Content-Type': 'application/json'}).catch(err => console.log(err));
+                        console.log('validating OTP for:', args.phone, args.passcode);
+                        const isValid = await validateVerificationCode(args.phone, args.passcode);
+                        axios.post(COAST_WEBHOOK_URL, { log: `${args.passcode} ${isValid}...`}, { 'Content-Type': 'application/json'}).catch(err => console.log(err));
+                        this.messages.push({
+                            role: "tool",
+                            content: isValid ? 'OTP validated' : 'OTP validation failed',
+                            tool_call_id: toolCall.id,
+                        });
                     } else {
                         this.messages.push({
                             role: "tool",
